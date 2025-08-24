@@ -233,10 +233,15 @@ function login() {
   }
 }
 
+// File Upload
 document.getElementById('fileInput').addEventListener('change', function(){
   const files = Array.from(this.files);
   files.forEach(file => {
-    currentUser.files.push(file);
+    const fileData = {
+      name: file.name,
+      url: URL.createObjectURL(file)
+    };
+    currentUser.files.push(fileData);
   });
   renderFiles();
 });
@@ -247,17 +252,15 @@ function renderFiles() {
   currentUser.files.forEach((file, index) => {
     const li = document.createElement('li');
     li.textContent = file.name;
-    
+
     const openBtn = document.createElement('button');
     openBtn.textContent = 'Open';
-    openBtn.onclick = () => {
-      const url = URL.createObjectURL(file);
-      window.open(url, '_blank');
-    };
-    
+    openBtn.onclick = () => { window.open(file.url, '_blank'); };
+
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Delete';
     deleteBtn.onclick = () => {
+      URL.revokeObjectURL(file.url);
       currentUser.files.splice(index,1);
       renderFiles();
     };
@@ -268,7 +271,7 @@ function renderFiles() {
   });
 }
 
-// Messaging
+// Messaging between users
 function sendMessage() {
   const input = document.getElementById('chatInput');
   const msg = input.value.trim();
@@ -298,6 +301,7 @@ function renderChat() {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+// Logout
 function logout(){
   currentUser = null;
   document.getElementById('dashboard').style.display = 'none';
@@ -309,4 +313,4 @@ function logout(){
 }
 </script>
 </body>
-  </html>
+</html>
