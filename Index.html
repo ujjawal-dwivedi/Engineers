@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engineer Docs Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+body {
+  font-family: 'Orbitron', sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background: #0d0d0d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #00ffea;
+  overflow: hidden;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(#00ffea 1px, transparent 1px) 0 0,
+              linear-gradient(90deg, #00ffea 1px, transparent 1px) 0 0;
+  background-size: 50px 50px;
+  opacity: 0.1;
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+  0% {background-position: 0 0, 0 0;}
+  100% {background-position: 500px 500px, 500px 500px;}
+}
+
+.login-box, .dashboard, .robot-welcome {
+  position: relative;
+  background: rgba(0,0,0,0.85);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 30px #00ffea;
+  width: 400px;
+  text-align: center;
+  z-index: 1;
+}
+
+.login-box h2, .dashboard h2, .robot-welcome h2 {
+  margin-bottom: 30px;
+  color: #00ffea;
+  letter-spacing: 2px;
+}
+
+.login-box input, #chatInput {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #00ffea;
+  background: transparent;
+  color: #00ffea;
+  font-size: 16px;
+}
+
+.login-box input::placeholder, #chatInput::placeholder {
+  color: #00ffea;
+  opacity: 0.7;
+}
+
+.login-box button, .dashboard button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  background: #00ffea;
+  color: #0d0d0d;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+.login-box button:hover, .dashboard button:hover {
+  background: #00bfa5;
+}
+
+#error { margin-top: 10px; color: #ff3b3b; }
+
+.robot-img {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px;
+  background: url('https://i.imgur.com/7rQ3o9I.png') no-repeat center/contain;
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0);}
+  50% { transform: translateY(-20px);}
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.file-section, .chat-section {
+  background: rgba(0,255,234,0.05);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+ul li {
+  background: rgba(0,255,234,0.1);
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+ul li button {
+  background: #ff0066;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+ul li button:hover {
+  background: #cc004c;
+}
+
+#chatBox {
+  height: 150px;
+  overflow-y: auto;
+  padding: 5px;
+  background: rgba(0,255,234,0.05);
+  border-radius: 5px;
+  border: 1px solid #00ffea;
+  margin-bottom: 5px;
+}
+</style>
+</head>
+<body>
+
+<!-- Login Form -->
+<div class="login-box" id="loginBox">
+  <h2>ENGINEER PORTAL</h2>
+  <input type="text" id="phone" placeholder="Phone Number">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="error"></p>
+</div>
+
+<!-- Robot Welcome -->
+<div class="robot-welcome" id="robotWelcome" style="display:none;">
+  <div class="robot-img"></div>
+  <h2 id="robotText"></h2>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard" style="display:none;">
+  <h2>Welcome <span id="userName"></span></h2>
+  <div class="dashboard-container">
+
+    <!-- File Upload Section -->
+    <div class="file-section">
+      <p>Upload your engineering documents/projects:</p>
+      <input type="file" id="fileInput" multiple>
+      <ul id="fileList"></ul>
+    </div>
+
+    <!-- Messaging Section -->
+    <div class="chat-section">
+      <h3>Engineer Messaging</h3>
+      <div id="chatBox"></div>
+      <input type="text" id="chatInput" placeholder="Type a message">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<script>
+const users = [
+  {phone: "9508856147", password: "Ujjawal@123", name: "Ujjawal", files: [], chat: []},
+  {phone: "6200544261", password: "Daksh@123", name: "Daksh", files: [], chat: []}
+];
+
+let currentUser = null;
+
+function login() {
+  const phone = document.getElementById('phone').value;
+  const password = document.getElementById('password').value;
+  const user = users.find(u => u.phone === phone && u.password === password);
+  
+  if(user){
+    currentUser = user;
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('robotWelcome').style.display = 'block';
+    document.getElementById('robotText').innerText = `Welcome, ${user.name}! Preparing your engineering world...`;
+
+    let msg = new SpeechSynthesisUtterance(`Welcome ${user.name}, this is your engineering world!`);
+    window.speechSynthesis.speak(msg);
+
+    setTimeout(() => {
+      document.getElementById('robotWelcome').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('userName').innerText = user.name;
+      renderFiles();
+      renderChat();
+    }, 3000);
+
+  } else {
+    document.getElementById('error').innerText = "Invalid phone number or password!";
+  }
+}
+
+// File Upload
+document.getElementById('fileInput').addEventListener('change', function(){
+  const files = Array.from(this.files);
+  files.forEach(file => {
+    const fileData = {
+      name: file.name,
+      url: URL.createObjectURL(file)
+    };
+    currentUser.files.push(fileData);
+  });
+  renderFiles();
+});
+
+function renderFiles() {
+  const fileList = document.getElementById('fileList');
+  fileList.innerHTML = '';
+  currentUser.files.forEach((file, index) => {
+    const li = document.createElement('li');
+    li.textContent = file.name;
+
+    const openBtn = document.createElement('button');
+    openBtn.textContent = 'Open';
+    openBtn.onclick = () => { window.open(file.url, '_blank'); };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = () => {
+      URL.revokeObjectURL(file.url);
+      currentUser.files.splice(index,1);
+      renderFiles();
+    };
+
+    li.appendChild(openBtn);
+    li.appendChild(deleteBtn);
+    fileList.appendChild(li);
+  });
+}
+
+// Messaging between users
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(msg === '') return;
+
+  const otherUser = users.find(u => u !== currentUser);
+
+  const message = {from: currentUser.name, text: msg};
+  currentUser.chat.push(message);
+  otherUser.chat.push(message);
+
+  renderChat();
+  input.value = '';
+}
+
+function renderChat() {
+  const chatBox = document.getElementById('chatBox');
+  chatBox.innerHTML = '';
+  
+  currentUser.chat.forEach(m => {
+    const msgDiv = document.createElement('div');
+    msgDiv.style.margin = '5px 0';
+    msgDiv.textContent = `${m.from}: ${m.text}`;
+    chatBox.appendChild(msgDiv);
+  });
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Logout
+function logout(){
+  currentUser = null;
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginBox').style.display = 'block';
+  document.getElementById('phone').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('fileList').innerHTML = '';
+  document.getElementById('chatBox').innerHTML = '';
+}
+</script>
+</body>
+</html>
